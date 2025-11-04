@@ -4,15 +4,9 @@ import plotly.express as px
 from dash import Dash, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 
-# ==============================
-# 📁 Konfigurasi direktori data
-# ==============================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "Data")
 
-# ==============================
-# 🔍 Fungsi baca CSV fleksibel
-# ==============================
 def read_csv_robust(path):
     for enc in ["utf-8-sig", "utf-8", "latin-1", "cp1252"]:
         for sep in [",", ";", "\t"]:
@@ -24,9 +18,6 @@ def read_csv_robust(path):
                 continue
     raise ValueError(f"Gagal membaca file: {path}")
 
-# ==============================================
-# 📊 Fungsi memuat semua dataset ke dalam dict
-# ==============================================
 def load_datasets():
     files = {
         "Inflasi": "Inflasi_Provinsi_Sumsel_Baru.csv",
@@ -46,7 +37,6 @@ def load_datasets():
         else:
             print(f"[MISS] Tidak ditemukan: {fname}")
 
-    # 🧹 Tambahkan potongan kode yang kamu minta di sini
     if "Penduduk Menurut Umur Sekolah" in data:
         df = data["Penduduk Menurut Umur Sekolah"].copy()
         df.columns = ["Kelompok Umur", "Tidak/Belum Pernah Sekolah", "Masih Sekolah", "Tidak Sekolah Lagi"]
@@ -58,21 +48,12 @@ def load_datasets():
 
     return data
 
-# ==============================================
-# 🚀 Memuat semua dataset
-# ==============================================
 datasets = load_datasets()
 
-# ==============================================
-# 🎨 Membuat aplikasi Dash
-# ==============================================
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.config.suppress_callback_exceptions = True
 server = app.server
 
-# ==============================================
-# 🧭 Navbar & Sidebar
-# ==============================================
 navbar = dbc.Navbar(
     dbc.Container([
         html.A([
@@ -121,9 +102,6 @@ sidebar = dbc.Card([
     "padding": "15px"
 })
 
-# ==============================================
-# 📦 Kartu indikator utama
-# ==============================================
 def make_card(judul, id_value, id_sub):
     return dbc.Card(
         dbc.CardBody([
@@ -142,9 +120,6 @@ cards = dbc.Row([
     dbc.Col(make_card("Nilai Maksimum", "val-max", "sub-max")),
 ], className="mb-4")
 
-# ==============================================
-# 🧱 Layout utama dashboard
-# ==============================================
 app.layout = dbc.Container([
     navbar,
     html.Br(),
@@ -165,9 +140,6 @@ app.layout = dbc.Container([
     ])
 ], fluid=True, style={"backgroundColor": "#eef2f5"})
 
-# ==============================================
-# 🔄 Callback filter periode
-# ==============================================
 @app.callback(
     [Output("periode", "options"), Output("periode", "value")],
     Input("indikator", "value")
@@ -182,9 +154,6 @@ def update_periode(indikator):
     options = [{"label": str(v), "value": str(v)} for v in df[col0].astype(str).unique()]
     return options, None
 
-# ==============================================
-# 📊 Callback update grafik & kartu indikator
-# ==============================================
 @app.callback(
     [Output("grafik-utama", "figure"),
      Output("val-terakhir", "children"),
@@ -243,9 +212,6 @@ def update_dashboard(indikator, periode):
         ])
     )
 
-# ==============================================
-# ⬇️ Callback tombol unduh CSV
-# ==============================================
 @app.callback(
     Output("download-data", "data"),
     Input("btn-download", "n_clicks"),
@@ -258,8 +224,5 @@ def download_csv(n_clicks, indikator):
     df = datasets[indikator]
     return dcc.send_data_frame(df.to_csv, f"{indikator}_Sumsel.csv", index=False)
 
-# ==============================================
-# ▶️ Jalankan aplikasi
-# ==============================================
 if __name__ == "__main__":
     app.run(debug=True, port=8050)
